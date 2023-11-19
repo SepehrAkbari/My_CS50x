@@ -1,0 +1,6 @@
+sort1 uses: BUBBLE SORT
+How do you know?: because its faster than sort3 only when the input is sorted meaning O(n) rather than O(n^2).
+sort2 uses: MERGE SORT
+How do you know?: much faster than sort1 & sort3. Has almost the same run time in sorted and reversed scenarios, indicating the notation's efficiency in dealing with reversed inputs.
+sort3 uses: SELECTION SORT
+How do you know?: because its always faster than sort1, other than when the input is sorted as it still uses O(n^2).
