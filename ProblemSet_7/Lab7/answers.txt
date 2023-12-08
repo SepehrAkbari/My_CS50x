@@ -1,0 +1,4 @@
+One way is to get the average of loudness or energy, the higher the average the more energetic the listener is.
+
+A better way would perhaps be adding a "catagory" column to the songs table. For example "rock" "pop" etc.
+With that we can use SQL to count each catagory within the database, and output the most frequent as the listener's favorite.
