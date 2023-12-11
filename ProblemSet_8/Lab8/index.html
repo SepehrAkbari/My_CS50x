@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+        <link href="styles.css" rel="stylesheet">
+        <title>Trivia!</title>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Trivia!</h1>
+        </div>
+
+        <div class="container">
+            <div class="section">
+                <h2>Part 1: Multiple Choice </h2>
+                <hr>
+                <!-- TODO: Add multiple choice question here -->
+                <h3>What is the best programming language for talking to squirrels?</h3>
+                <p id = "status"></p>
+
+                <button id = "incorrect">Nut++</button>
+                <button id = "correct">SquirrelScript</button>
+                <button id = "incorrect">AcornLisp</button>
+                <button id = "incorrect">RustyNuts</button>
+
+                <script>
+                    let correct = document.querySelector('#correct');
+                    let incorrect = document.querySelectorAll('#incorrect');
+                    let status = document.querySelector('#status');
+
+                    correct.onclick = function() {
+                        correct.style.backgroundColor = 'green';
+                        status.innerHTML = "Correct!";
+                    };
+
+                    for (let i = 0; i < incorrect.length; i++) {
+                        incorrect[i].onclick = function() {
+                            incorrect[i].style.backgroundColor = 'red';
+                            status.innerHTML = "Incorrect!";
+                        };
+                    }
+                </script>
+            </div>
+
+            <div class="section">
+                <h2>Part 2: Free Response</h2>
+                <hr>
+                <!-- TODO: Add free response question here -->
+                <h3>What do you call a function that tells dad jokes in JavaScript?</h3>
+
+                <form>
+                    <input type="text" id="value">
+                    <button>Check Answer</button>
+
+                    <script>
+                        document.addEventListener('submit', function() {
+                            let status2 = document.querySelector('#status2');
+                            let value = document.querySelector('#value');
+
+                            if (value.value == 'Pun-ction') {
+                                value.style.backgroundColor = 'green';
+                                status2.innerHTML = 'Correct!';
+                            }
+                            else {
+                                value.style.backgroundColor = 'red';
+                                status2.innerHTML = 'Incorrect!';
+                            }
+                        });
+                    </script>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
