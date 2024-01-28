@@ -12,9 +12,6 @@ from helpers import apology, login_required, lookup, usd
 # Configure application
 app = Flask(__name__)
 
-# Ensure templates are auto-reloaded
-app.config["TEMPLATES_AUTO_RELOAD"] = True
-
 # Custom filter
 app.jinja_env.filters["usd"] = usd
 
@@ -26,9 +23,6 @@ Session(app)
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///finance.db")
 
-# Make sure API key is set
-if not os.environ.get("API_KEY"):
-    raise RuntimeError("API_KEY not set")
 
 
 @app.after_request
@@ -50,7 +44,7 @@ def index():
     cash_db = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
     cash = cash_db[0]["cash"]
 
-    return render_template("index.html", database=transactions_db, cash=cash)
+    return render_template("index.html", database=transactions_db, cash=usd(cash))
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -61,18 +55,20 @@ def buy():
         return render_template("buy.html")
     else:
         symbol = request.form.get("symbol")
-        shares = int(request.form.get("shares"))
+        shares = request.form.get("shares")
 
         if not symbol:
-                return apology("Must Give Symbol")
+            return apology("must give symbol")
 
         stock = lookup(symbol.upper())
 
         if stock == None:
-            return apology("Symbol Does Not Exist")
+            return apology("Symbol does not exist")
 
-        if shares < 0:
-            return apology("Share Not Allowed")
+        if not shares or not shares.isdigit() or int(shares) < 1:
+            return apology("enter a valid amount of shares")
+
+        shares = int(request.form.get("shares"))
 
         transaction_value = shares * stock["price"]
 
@@ -81,19 +77,16 @@ def buy():
         user_cash = user_cash_db[0]["cash"]
 
         if user_cash < transaction_value:
-            return apology("Not Enough Money")
-        uptd_cash = user_cash - transaction_value
+            return apology("you don't have enough cash")
 
-        db.execute("UPDATE users SET cash = ? WHERE id = ?", uptd_cash, user_id)
+        updated_cash = user_cash - transaction_value
+        db.execute("UPDATE users SET cash = ? WHERE id = ?", updated_cash, user_id)
 
         date = datetime.datetime.now()
 
-        db.execute("INSERT INTO transactions (user_id, symbol, shares, price, date) VALUES (?, ?, ?, ?, ?)", user_id, stock["symbol"], shares, stock["price"], date)
-
-        flash("Boudht!")
+        db.execute("INSERT INTO transactions (user_id, symbol, shares, price, date, total) VALUES (?, ?, ?, ?, ?, ?)", user_id, stock["symbol"], shares, stock["price"], date, usd(shares * stock["price"]))
 
         return redirect("/")
-
 
 
 @app.route("/history")
@@ -136,7 +129,6 @@ def login():
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-
         # Ensure username was submitted
         if not request.form.get("username"):
             return apology("must provide username", 403)
@@ -146,10 +138,14 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        rows = db.execute(
+            "SELECT * FROM users WHERE username = ?", request.form.get("username")
+        )
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if len(rows) != 1 or not check_password_hash(
+            rows[0]["hash"], request.form.get("password")
+        ):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
@@ -189,9 +185,9 @@ def quote():
         stock = lookup(symbol.upper())
 
         if stock == None:
-            return apology("Symbol Does Not Exist")
-        return render_template("quoted.html", name = stock["name"], price = stock["price"], symbol = stock["symbol"])
+            return apology("Symbol does not exist")
 
+        return render_template("quoted.html", price = usd(stock["price"]), symbol = stock["symbol"])
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -205,27 +201,26 @@ def register():
         confirmation = request.form.get("confirmation")
 
         if not username:
-            return apology("Must Give Username")
+            return apology("Missing Username")
 
         if not password:
-            return apology("Must Give Password")
+            return apology("Missing Password")
 
         if not confirmation:
-            return apology("Must Give Confirmation")
+            return apology("Missing Password Confirmation")
 
         if password != confirmation:
-            return apology("Password Do Not Match")
+            return apology("Passwords don't match")
 
         hash = generate_password_hash(password)
 
         try:
             new_user = db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", username, hash)
         except:
-            return apology("Username already exists")
+            return apology("Username Already Exists")
         session["user_id"] = new_user
 
         return redirect("/")
-
 
 
 @app.route("/sell", methods=["GET", "POST"])
